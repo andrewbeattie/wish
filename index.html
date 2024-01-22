@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genshin Wish Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Genshin Wish Calculator</h1>
+    
+    <label for="totalWishes">Total Wishes:</label>
+    <input type="number" id="totalWishes" placeholder="Enter total wishes">
+
+    <label for="fiveStarPity">5-star Pity Counter:</label>
+    <input type="number" id="fiveStarPity" placeholder="Enter 5-star pity counter">
+
+    <button onclick="calculateChance()">Calculate Chance</button>
+
+    <p id="result"></p>
+
+    <script>
+        function calculateChance() {
+            const totalWishes = document.getElementById('totalWishes').value;
+            const fiveStarPity = document.getElementById('fiveStarPity').value;
+
+            // Assuming a 0.6% chance for a limited 5-star character in each wish
+            const chancePerWish = 0.006;
+            
+            // Calculate the cumulative probability of not getting a 5-star
+            const noFiveStarProbability = Math.pow(1 - chancePerWish, totalWishes - fiveStarPity);
+
+            // Calculate the probability of getting at least one 5-star
+            const atLeastOneFiveStarProbability = 1 - noFiveStarProbability;
+
+            // Display the result
+            document.getElementById('result').innerText = `Chance to pull a limited 5-star character: ${(atLeastOneFiveStarProbability * 100).toFixed(2)}%`;
+        }
+    </script>
+</body>
+</html>
