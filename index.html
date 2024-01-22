@@ -43,13 +43,6 @@
                 chancePerWish += 0.002;
             }
 
-            // Check if a standard 5-star is obtained on the first 50/50 roll
-            if (totalWishes === 1 && !limited5Star && Math.random() < 0.5) {
-                // Reset pity counter and set a guarantee for a limited 5-star on the next 50/50 roll
-                fiveStarPity = 0;
-                chancePerWish += 0.5;
-            }
-
             // Check if a 5-star is obtained before 90 rolls, then reset the counter
             if (totalWishes - fiveStarPity < 90) {
                 fiveStarPity = 0;
