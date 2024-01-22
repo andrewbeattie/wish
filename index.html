@@ -11,6 +11,10 @@
             text-align: center;
             margin: 20px;
         }
+        canvas {
+            max-width: 600px;
+            margin: 20px auto;
+        }
     </style>
 </head>
 <body>
@@ -19,48 +23,89 @@
     <label for="totalWishes">Total Wishes:</label>
     <input type="number" id="totalWishes" placeholder="Enter total wishes">
 
-    <label for="fiveStarPity">5-star Pity Counter:</label>
-    <input type="number" id="fiveStarPity" placeholder="Enter 5-star pity counter">
+    <button onclick="calculateProbabilities()">Calculate Probabilities</button>
 
-    <label for="limited5Star">Limited 5-star:</label>
-    <input type="checkbox" id="limited5Star"> Check if you want a limited 5-star
+    <canvas id="myChart"></canvas>
 
-    <button onclick="calculateChance()">Calculate Chance</button>
-
-    <p id="result"></p>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        function calculateChance() {
+        function calculateProbabilities() {
             const totalWishes = parseInt(document.getElementById('totalWishes').value);
-            let fiveStarPity = parseInt(document.getElementById('fiveStarPity').value);
-            const limited5Star = document.getElementById('limited5Star').checked;
-
+            
             // Base chance for a 5-star character in each wish
-            let chancePerWish = 0.006;
+            const baseChancePerWish = 0.006;
 
-            // If the player wants a limited 5-star, increase the chance
-            if (limited5Star) {
-                chancePerWish += 0.002;
+            // Calculate the probabilities
+            const probabilities = [];
+            for (let i = 1; i <= totalWishes; i++) {
+                const chancePerWish = baseChancePerWish + calculateSoftPity(i);
+                const noFiveStarProbability = Math.pow(1 - chancePerWish, i);
+                const atLeastOneFiveStarProbability = 1 - noFiveStarProbability;
+
+                probabilities.push({
+                    wishNumber: i,
+                    limited5Star: atLeastOneFiveStarProbability * 100,
+                    any5Star: calculateAny5StarProbability(i) * 100
+                });
             }
 
-            // Check if a 5-star is obtained before 90 rolls, then reset the counter
-            if (totalWishes - fiveStarPity < 90) {
-                fiveStarPity = 0;
+            // Display the chart
+            displayChart(probabilities);
+        }
+
+        function calculateSoftPity(wishNumber) {
+            // Adjust the soft pity mechanism as needed based on community observations
+            if (wishNumber >= 75) {
+                return 0.02; // Example: Increased chance in the later wishes
             }
+            return 0;
+        }
 
-            // Calculate the cumulative probability of not getting a 5-star
-            const noFiveStarProbability = Math.pow(1 - chancePerWish, totalWishes - fiveStarPity);
+        function calculateAny5StarProbability(wishNumber) {
+            // Assume a 50% chance to get a 5-star, considering both limited and non-limited
+            return 0.5;
+        }
 
-            // Calculate the probability of getting at least one 5-star
-            let atLeastOneFiveStarProbability = 1 - noFiveStarProbability;
+        function displayChart(probabilities) {
+            const labels = probabilities.map(item => item.wishNumber);
+            const limited5StarData = probabilities.map(item => item.limited5Star.toFixed(2));
+            const any5StarData = probabilities.map(item => item.any5Star.toFixed(2));
 
-            // Guarantee a 5-star at 90 rolls with a 50% chance for limited 5-star
-            if (totalWishes - fiveStarPity >= 90) {
-                atLeastOneFiveStarProbability = Math.min(atLeastOneFiveStarProbability + 0.5, 1);
-            }
-
-            // Display the result
-            document.getElementById('result').innerText = `Chance to pull a 5-star character: ${(atLeastOneFiveStarProbability * 100).toFixed(2)}%`;
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Limited 5-star Probability',
+                            data: limited5StarData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Any 5-star Probability',
+                            data: any5StarData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom'
+                        },
+                        y: {
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>
