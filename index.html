@@ -22,26 +22,52 @@
     <label for="fiveStarPity">5-star Pity Counter:</label>
     <input type="number" id="fiveStarPity" placeholder="Enter 5-star pity counter">
 
+    <label for="limited5Star">Limited 5-star:</label>
+    <input type="checkbox" id="limited5Star"> Check if you want a limited 5-star
+
     <button onclick="calculateChance()">Calculate Chance</button>
 
     <p id="result"></p>
 
     <script>
         function calculateChance() {
-            const totalWishes = document.getElementById('totalWishes').value;
-            const fiveStarPity = document.getElementById('fiveStarPity').value;
+            const totalWishes = parseInt(document.getElementById('totalWishes').value);
+            let fiveStarPity = parseInt(document.getElementById('fiveStarPity').value);
+            const limited5Star = document.getElementById('limited5Star').checked;
 
-            // Assuming a 0.6% chance for a limited 5-star character in each wish
-            const chancePerWish = 0.006;
-            
+            // Base chance for a 5-star character in each wish
+            let chancePerWish = 0.006;
+
+            // If the player wants a limited 5-star, increase the chance
+            if (limited5Star) {
+                chancePerWish += 0.002;
+            }
+
+            // Check if a standard 5-star is obtained on the first 50/50 roll
+            if (totalWishes === 1 && !limited5Star && Math.random() < 0.5) {
+                // Reset pity counter and set a guarantee for a limited 5-star on the next 50/50 roll
+                fiveStarPity = 0;
+                chancePerWish += 0.5;
+            }
+
+            // Check if a 5-star is obtained before 90 rolls, then reset the counter
+            if (totalWishes - fiveStarPity < 90) {
+                fiveStarPity = 0;
+            }
+
             // Calculate the cumulative probability of not getting a 5-star
             const noFiveStarProbability = Math.pow(1 - chancePerWish, totalWishes - fiveStarPity);
 
             // Calculate the probability of getting at least one 5-star
-            const atLeastOneFiveStarProbability = 1 - noFiveStarProbability;
+            let atLeastOneFiveStarProbability = 1 - noFiveStarProbability;
+
+            // Guarantee a 5-star at 90 rolls with a 50% chance for limited 5-star
+            if (totalWishes - fiveStarPity >= 90) {
+                atLeastOneFiveStarProbability = Math.min(atLeastOneFiveStarProbability + 0.5, 1);
+            }
 
             // Display the result
-            document.getElementById('result').innerText = `Chance to pull a limited 5-star character: ${(atLeastOneFiveStarProbability * 100).toFixed(2)}%`;
+            document.getElementById('result').innerText = `Chance to pull a 5-star character: ${(atLeastOneFiveStarProbability * 100).toFixed(2)}%`;
         }
     </script>
 </body>
